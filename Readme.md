@@ -9,7 +9,7 @@
 
 ## Compiling the Bot
 
-*TBA*
+TBA
 
 ## Running the Simulation
 
