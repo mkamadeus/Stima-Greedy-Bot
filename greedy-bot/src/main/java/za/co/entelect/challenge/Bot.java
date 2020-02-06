@@ -75,22 +75,30 @@ public class Bot {
 //                }
 //            }
 //        }
-        if(command == "" && this.getEnergy(PlayerType.A)<100)
-        {
-            command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
-        }
-        if (command.equals("")) {
-            for (int i = 0; i < gameState.gameDetails.mapHeight; i++) {
-                if (getAllBuildingsForPlayer(PlayerType.A, b -> b.buildingType == BuildingType.DEFENSE, i).size() > 0
-                        && canAffordBuilding(BuildingType.ATTACK)) {
-                    command = placeBuildingInRowFromFront(BuildingType.ATTACK, i);
-                }
-            }
-        }
-        if(command == "" && this.getEnergy(PlayerType.A)>=2*this.getPriceForBuilding(BuildingType.DEFENSE))
-        {
-            command = this.placeBuildingRandomlyFromFront(BuildingType.DEFENSE);
-        }
+        // If bot health above 50%...
+        // if(this.getHealth(PlayerType.A)>=50)
+        // {
+        //     if(command == "" && )
+        // }
+        // else
+        // {
+
+        // }
+        // if(command == "" && this.getEnergy(PlayerType.A)<50)
+        // {
+        //     command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
+        //     this.getEnergyBuilding(PlayerType.A);
+        // }
+        // if (command.equals("")) {
+        //     for (int i = 0; i < gameState.gameDetails.mapHeight; i++) {
+        //         if (getAllBuildingsForPlayer(PlayerType.A, b -> b.buildingType == BuildingType.DEFENSE, i).size() > 0
+        //                 && canAffordBuilding(BuildingType.ATTACK)) {
+        //             command = placeBuildingInRowFromFront(BuildingType.ATTACK, i);
+        //         }
+        //     }
+        command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
+        
+        System.out.println(this.getEnergyBuilding(PlayerType.A));
 
         return command;
     }
@@ -152,13 +160,14 @@ public class Bot {
      * @param y          the y
      * @return the result
      **/
-    private List<Building> getAllBuildingsForPlayer(PlayerType playerType, Predicate<Building> filter, int y) {
+    private List<Building> getAllBuildingsForPlayer(PlayerType playerType, Predicate<Building> filter) {
         return gameState.getGameMap().stream()
-                .filter(c -> c.cellOwner == playerType && c.y == y)
+                .filter(c -> c.cellOwner == playerType)
                 .flatMap(c -> c.getBuildings().stream())
                 .filter(filter)
                 .collect(Collectors.toList());
     }
+    
 
     /**
      * Get all empty cells for column x
@@ -214,6 +223,20 @@ public class Bot {
                 .filter(p -> p.playerType == playerType)
                 .mapToInt(p -> p.energy)
                 .sum();
+    }
+
+    private int getHealth(PlayerType playerType)
+    {
+        return this.gameState.getPlayers().stream()
+                .filter(p -> p.playerType == playerType)
+                .mapToInt(p -> p.health)
+                .sum();
+    }
+
+    private int getEnergyBuilding(PlayerType playerType)
+    {
+        int result = this.getAllBuildingsForPlayer(playerType, x->x.buildingType==BuildingType.ENERGY).size();
+        return result;
     }
 
     /**

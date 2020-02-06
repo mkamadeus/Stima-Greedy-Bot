@@ -4,6 +4,6 @@
   "verbose-mode": true,
   "max-runtime-ms": 2000,
   "player-a": "./greedy-bot/",
-  "player-b": "./enemy-bot/",
+  "player-b": "./greedy-bot/",
   "is-tournament-mode": false
 }
