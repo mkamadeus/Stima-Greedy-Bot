@@ -113,7 +113,7 @@ public class Bot {
     }
 
     /* -=-=-=-=-=-=-=-=-=-=-=-= BUILDINGS GETTER -=-=-=-=-=-=-=-=-=-=-=-= */
-    // Private methods for getting game details, such as health, energy, etc.
+    // Private methods for getting buildings related status.
     
     // Get building price
     private int getBuildingPrice(BuildingType buildingType) {
@@ -150,25 +150,6 @@ public class Bot {
             .size();
     }
     
-    private int findLeastDefence(PlayerType playerType)
-    {
-        if(playerType == PlayerType.A){
-            max = getListOfEmptyCellsForRow(0,PlayerType.B);
-            for(int i = 0; i < mapWidth(); i++){
-                if (max < getListOfEmptyCellsForRow(i)){
-                    max = getListOfEmptyCellsForRow(i);
-                }
-            }
-        }else{
-            max = getListOfEmptyCellsForRow(0,PlayerType.A);
-            for(int i = 0; i < mapWidth(); i++){
-                if (max < getListOfEmptyCellsForRow(i)){
-                    max = getListOfEmptyCellsForRow(i);
-                }
-            }
-        }
-        return max;
-    }
     // Get defense building count of playerType
     private int getTeslaBuildingCount(PlayerType playerType)
     {
@@ -179,6 +160,21 @@ public class Bot {
         .size();
     }
 
+    /* NOTE: ini bisa pake getAllBuildingsForPLayer(playerType, filter) */
+
+    // Get count of enemy's energy building in row y
+    // private int getEnemyEnergyInRow(int row)
+    
+    // Get count of enemy's attack building in row y
+    // private int getEnemyAttackInRow(int row)
+    
+    // Get count of enemy's defense building in row y
+    // private int getEnemyDefenseInRow(int row)
+
+    
+    /* -=-=-=-=-=-=-=-=-=-=-=-= BUILDINGS PLACER -=-=-=-=-=-=-=-=-=-=-=-= */
+    // Private methods for placing buildings.
+    
     // Place building in coordinate (x,y)
     private String placeBuilding(BuildingType buildingType, int x, int y)
     {
@@ -188,7 +184,7 @@ public class Bot {
     // Placing building randomly in the back
     private String placeBuildingRandomlyFromBack(BuildingType buildingType) {
         for (int i = 0; i < gameState.gameDetails.mapWidth / 2; i++) {
-            List<CellStateContainer> listOfFreeCells = getListOfEmptyCellsForColumn(i);
+            List<CellStateContainer> listOfFreeCells = getColumnEmptyCellList(i);
             if (!listOfFreeCells.isEmpty()) {
                 CellStateContainer pickedCell = listOfFreeCells.get((new Random()).nextInt(listOfFreeCells.size()));
                 return buildCommand(pickedCell.x, pickedCell.y, buildingType);
@@ -200,7 +196,7 @@ public class Bot {
     // Placing building randomly in the front
     private String placeBuildingRandomlyFromFront(BuildingType buildingType) {
         for (int i = (gameState.gameDetails.mapWidth / 2) - 1; i >= 0; i--) {
-            List<CellStateContainer> listOfFreeCells = getListOfEmptyCellsForColumn(i);
+            List<CellStateContainer> listOfFreeCells = getColumnEmptyCellList(i);
             if (!listOfFreeCells.isEmpty()) {
                 CellStateContainer pickedCell = listOfFreeCells.get((new Random()).nextInt(listOfFreeCells.size()));
                 return buildCommand(pickedCell.x, pickedCell.y, buildingType);
@@ -234,6 +230,13 @@ public class Bot {
         return String.format("%s,%d,%s", String.valueOf(x), y, buildingType.getCommandCode());
     }
 
+    // Returns boolean to check if a building can be planted in (x,y) with calculating bullets, turrets, and its construction time as well
+    // private boolean isCellSafe(BuildingType buildingType, int x, int y)
+
+    /* -=-=-=-=-=-=-=-=-=-=-=-= BUILDINGS LIST -=-=-=-=-=-=-=-=-=-=-=-= */
+    // Private methods for getting building List, relating to cellstatecontainer
+
+    // Get list for all building of playerType with additional filter
     private List<Building> getAllBuildingsForPlayer(PlayerType playerType, Predicate<Building> filter) {
         return gameState.getGameMap().stream()
                 .filter(c -> c.cellOwner == playerType)
@@ -242,31 +245,28 @@ public class Bot {
                 .collect(Collectors.toList());
     }
     
-    private List<CellStateContainer> getListOfEmptyCellsForColumn(int x) {
+    // Get list of empty cells in column x
+    private List<CellStateContainer> getColumnEmptyCellList(int x) {
         return gameState.getGameMap().stream()
                 .filter(c -> c.x == x && isCellEmpty(x, c.y))
                 .collect(Collectors.toList());
     }
 
-    private int getListOfEmptyCellsForRow(int y, PlayerType playerType) {
+    // Get list of empty row in row y of playerType
+    private List<CellStateContainer> getListOfEmptyCellsForRow(int y, PlayerType playerType) {
         if(playerType == PlayerType.A){
             return gameState.getGameMap().stream()
-                    .filter(c -> c.y == y && c.x<=7 && isCellEmpty(x, c.y))
-                    .collect(Collectors.toList()).size();
+                    .filter(c -> c.y == y && c.x<=7 && isCellEmpty(c.x, c.y))
+                    .collect(Collectors.toList());
         }
         else{
             return gameState.getGameMap().stream()
-                    .filter(c -> c.y == y && c.x>7 && isCellEmpty(x, c.y))
-                    .collect(Collectors.toList()).size();
+                    .filter(c -> c.y == y && c.x>7 && isCellEmpty(c.x, c.y))
+                    .collect(Collectors.toList());
         }
     }
-    /**
-     * Checks if cell at x,y is empty
-     *
-     * @param x the x
-     * @param y the y
-     * @return the result
-     **/
+
+    // Check if cell empty
     private boolean isCellEmpty(int x, int y) {
         Optional<CellStateContainer> cellOptional = gameState.getGameMap().stream()
                 .filter(c -> c.x == x && c.y == y)
