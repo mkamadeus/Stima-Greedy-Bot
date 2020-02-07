@@ -32,8 +32,43 @@ public class Bot {
     public String run() {
         String command = "";
         
-        command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);        
-        System.out.println(this.getEnergyBuildingCount(PlayerType.A));
+        if(this.getPlayerHealth(PlayerType.A)>=50)
+        {
+            int countEnergyAttack = this.getEnergyBuildingCount(PlayerType.A) + this.getAttackBuildingCount(PlayerType.A);
+
+            // STAGE 1 : ENERGY GREED
+            
+            if(this.getPlayerHealth(PlayerType.A)==100)
+            {
+                // First round
+                if(command=="" && countEnergyAttack%4==0)
+                {
+                    command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
+                }
+    
+                // Building count not multiple of 3
+                if(command=="" && this.getEnergyBuildingCount(PlayerType.A)%3!=0)
+                {
+                    command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
+                }
+    
+                // If energy building count is multiple of 3 and no turret is placed(hence total energy + attack is not multiple of 4)
+                if(command=="" && this.getEnergyBuildingCount(PlayerType.A)%3==0 && countEnergyAttack%4!=0)
+                {
+                    command = this.placeBuildingRandomlyFromFront(BuildingType.ATTACK);
+                }
+            }
+            else
+            {
+                // STAGE 2 : ATTACK GREED
+                // cari yang paling kosong
+                command = this.placeBuildingRandomlyFromFront(BuildingType.ATTACK);
+            }
+        }
+        else
+        {
+
+        }
 
         return command;
     }
@@ -114,7 +149,26 @@ public class Bot {
             )
             .size();
     }
-        
+    
+    private int findLeastDefence(PlayerType playerType)
+    {
+        if(playerType == PlayerType.A){
+            max = getListOfEmptyCellsForRow(0,PlayerType.B);
+            for(int i = 0; i < mapWidth(); i++){
+                if (max < getListOfEmptyCellsForRow(i)){
+                    max = getListOfEmptyCellsForRow(i);
+                }
+            }
+        }else{
+            max = getListOfEmptyCellsForRow(0,PlayerType.A);
+            for(int i = 0; i < mapWidth(); i++){
+                if (max < getListOfEmptyCellsForRow(i)){
+                    max = getListOfEmptyCellsForRow(i);
+                }
+            }
+        }
+        return max;
+    }
     // Get defense building count of playerType
     private int getTeslaBuildingCount(PlayerType playerType)
     {
@@ -124,10 +178,15 @@ public class Bot {
         )
         .size();
     }
-        
-        
-            // Placing building randomly in the back
-            private String placeBuildingRandomlyFromBack(BuildingType buildingType) {
+
+    // Place building in coordinate (x,y)
+    private String placeBuilding(BuildingType buildingType, int x, int y)
+    {
+        return buildCommand(x, y, buildingType);
+    }   
+    
+    // Placing building randomly in the back
+    private String placeBuildingRandomlyFromBack(BuildingType buildingType) {
         for (int i = 0; i < gameState.gameDetails.mapWidth / 2; i++) {
             List<CellStateContainer> listOfFreeCells = getListOfEmptyCellsForColumn(i);
             if (!listOfFreeCells.isEmpty()) {
@@ -189,6 +248,18 @@ public class Bot {
                 .collect(Collectors.toList());
     }
 
+    private int getListOfEmptyCellsForRow(int y, PlayerType playerType) {
+        if(playerType == PlayerType.A){
+            return gameState.getGameMap().stream()
+                    .filter(c -> c.y == y && c.x<=7 && isCellEmpty(x, c.y))
+                    .collect(Collectors.toList()).size();
+        }
+        else{
+            return gameState.getGameMap().stream()
+                    .filter(c -> c.y == y && c.x>7 && isCellEmpty(x, c.y))
+                    .collect(Collectors.toList()).size();
+        }
+    }
     /**
      * Checks if cell at x,y is empty
      *
