@@ -33,13 +33,13 @@ public class Bot {
     public String run() {
         String command = "";
         
-        if(this.getPlayerHealth(PlayerType.A)>=50)
+        if(this.getPlayerHealth(PlayerType.A)==100)
         {
             int countEnergyAttack = this.getEnergyBuildingCount(PlayerType.A) + this.getAttackBuildingCount(PlayerType.A);
 
             // STAGE 1 : ENERGY GREED
             
-            if(this.getPlayerHealth(PlayerType.A)==100)
+            if(this.getEnergyIncome(PlayerType.A)<=20)
             {
                 // First round
                 if(command=="" && countEnergyAttack%4==0)
@@ -63,15 +63,34 @@ public class Bot {
             {
                 // STAGE 2 : ATTACK GREED
                 // cari yang paling kosong
-                command = this.placeBuildingInRowFromFront(BuildingType.ATTACK, this.getEnemyLeastBuildingRow());
+                command = this.placeBuildingInRowFromFront(BuildingType.ATTACK, this.getEnemyLeastBuildingRow(), 6);
             }
         }
         else
         {
-
+            // STAGE 3 : DEFENSE GREED
+            int mostRow = this.getEnemyMostBuildingRow();
+            System.out.print("PISANG: ");
+            System.out.println(mostRow);
+            if(command=="" && this.isCellEmpty(6, mostRow))
+            {
+                command = this.placeBuilding(BuildingType.DEFENSE, 6,mostRow);
+            }
+            else if(command=="" && this.isCellEmpty(7, mostRow))
+            {
+                command = this.placeBuilding(BuildingType.DEFENSE, 7,mostRow);
+            }
+            else
+            {
+                command = this.placeBuildingInRowFromFront(BuildingType.ATTACK,  mostRow, 5);
+            }
         }
         
-        System.out.println(this.getEnemyEnergyInRow(5));
+        for(int i=0;i<8;i++)
+        {
+            System.out.println(this.getEnemyBuildingCountInRow(i));
+        }
+
         return command;
     }
 
@@ -211,6 +230,29 @@ public class Bot {
 
     }
 
+    // Return enemy's most row building, selects random most if many
+    private int getEnemyMostBuildingRow()
+    {
+        ArrayList<Integer> maximumRows = new ArrayList<Integer>();
+        int maximumCount = -999;
+        for(int i=0;i<8;i++)
+        {
+            if(maximumCount==this.getEnemyBuildingCountInRow(i))
+            {
+                maximumRows.add(i);
+            }
+            else if(maximumCount<this.getEnemyBuildingCountInRow(i))
+            {
+                maximumRows = new ArrayList<Integer>();
+                maximumRows.add(i);
+                maximumCount=i;
+            }
+        }
+
+        return maximumRows.get((new Random()).nextInt(maximumRows.size()));
+
+    }
+
     /* -=-=-=-=-=-=-=-=-=-=-=-= BUILDINGS PLACER -=-=-=-=-=-=-=-=-=-=-=-= */
     // Private methods for placing buildings.
     
@@ -222,7 +264,7 @@ public class Bot {
     
     // Placing building randomly in the back
     private String placeBuildingRandomlyFromBack(BuildingType buildingType) {
-        for (int i = 0; i < gameState.gameDetails.mapWidth / 2; i++) {
+        for (int i = 0; i < this.mapWidth(); i++) {
             List<CellStateContainer> listOfFreeCells = getColumnEmptyCellList(i);
             if (!listOfFreeCells.isEmpty()) {
                 CellStateContainer pickedCell = listOfFreeCells.get((new Random()).nextInt(listOfFreeCells.size()));
@@ -234,7 +276,7 @@ public class Bot {
 
     // Placing building randomly in the front
     private String placeBuildingRandomlyFromFront(BuildingType buildingType) {
-        for (int i = (gameState.gameDetails.mapWidth / 2) - 1; i >= 0; i--) {
+        for (int i = this.mapWidth() - 1; i >= 0; i--) {
             List<CellStateContainer> listOfFreeCells = getColumnEmptyCellList(i);
             if (!listOfFreeCells.isEmpty()) {
                 CellStateContainer pickedCell = listOfFreeCells.get((new Random()).nextInt(listOfFreeCells.size()));
@@ -245,9 +287,9 @@ public class Bot {
     }
 
     // Placing building in a row from front line
-    private String placeBuildingInRowFromFront(BuildingType buildingType, int y) {
+    private String placeBuildingInRowFromFront(BuildingType buildingType, int y, int start) {
         for (int i = (gameState.gameDetails.mapWidth / 2) - 1; i >= 0; i--) {
-            if (isCellEmpty(i, y)) {
+            if (i<=start && isCellEmpty(i, y)) {
                 return buildCommand(i, y, buildingType);
             }
         }
