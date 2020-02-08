@@ -7,6 +7,7 @@ import za.co.entelect.challenge.entities.Player;
 import za.co.entelect.challenge.enums.BuildingType;
 import za.co.entelect.challenge.enums.PlayerType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -62,14 +63,15 @@ public class Bot {
             {
                 // STAGE 2 : ATTACK GREED
                 // cari yang paling kosong
-                command = this.placeBuildingRandomlyFromFront(BuildingType.ATTACK);
+                command = this.placeBuildingInRowFromFront(BuildingType.ATTACK, this.getEnemyLeastBuildingRow());
             }
         }
         else
         {
 
         }
-
+        
+        System.out.println(this.getEnemyEnergyInRow(5));
         return command;
     }
 
@@ -160,18 +162,55 @@ public class Bot {
         .size();
     }
 
-    /* NOTE: ini bisa pake getAllBuildingsForPLayer(playerType, filter) */
+    /* NOTE: ini bisa pake getAllBuildingsForPlayer(playerType, filter) */
 
     // Get count of enemy's energy building in row y
-    // private int getEnemyEnergyInRow(int row)
+    private int getEnemyEnergyInRow(int row)
+    {
+        return this.getAllBuildingsForPlayerCellFilter(PlayerType.B, c->c.y==row,c -> c.buildingType==BuildingType.ENERGY).size();   
+    }
     
     // Get count of enemy's attack building in row y
-    // private int getEnemyAttackInRow(int row)
+    private int getEnemyAttackInRow(int row)     
+    {
+        return this.getAllBuildingsForPlayerCellFilter(PlayerType.B, c->c.y==row,c -> c.buildingType==BuildingType.ATTACK).size();   
+    }
     
     // Get count of enemy's defense building in row y
-    // private int getEnemyDefenseInRow(int row)
-
+    private int getEnemyDefenseInRow(int row)
+    {
+        return this.getAllBuildingsForPlayerCellFilter(PlayerType.B, c->c.y==row,c -> c.buildingType==BuildingType.DEFENSE).size();   
+    }
     
+    // Get total count of enemy's building in row y
+    private int getEnemyBuildingCountInRow(int row)
+    {
+        return getEnemyAttackInRow(row)+getEnemyEnergyInRow(row)+getEnemyDefenseInRow(row);
+    }
+
+    // Return enemy's least row building, selects random least if many
+    private int getEnemyLeastBuildingRow()
+    {
+        ArrayList<Integer> minimumRows = new ArrayList<Integer>();
+        int minimumCount = 999;
+        for(int i=0;i<8;i++)
+        {
+            if(minimumCount==this.getEnemyBuildingCountInRow(i))
+            {
+                minimumRows.add(i);
+            }
+            else if(minimumCount>this.getEnemyBuildingCountInRow(i))
+            {
+                minimumRows = new ArrayList<Integer>();
+                minimumRows.add(i);
+                minimumCount=i;
+            }
+        }
+
+        return minimumRows.get((new Random()).nextInt(minimumRows.size()));
+
+    }
+
     /* -=-=-=-=-=-=-=-=-=-=-=-= BUILDINGS PLACER -=-=-=-=-=-=-=-=-=-=-=-= */
     // Private methods for placing buildings.
     
@@ -242,6 +281,15 @@ public class Bot {
                 .filter(c -> c.cellOwner == playerType)
                 .flatMap(c -> c.getBuildings().stream())
                 .filter(filter)
+                .collect(Collectors.toList());
+    }
+    // Get list for all building of playerType with additional filter
+    private List<Building> getAllBuildingsForPlayerCellFilter(PlayerType playerType,  Predicate<CellStateContainer> filter1, Predicate<Building> filter2) {
+        return gameState.getGameMap().stream()
+                .filter(c -> c.cellOwner == playerType)
+                .filter(filter1)
+                .flatMap(c -> c.getBuildings().stream())
+                .filter(filter2)
                 .collect(Collectors.toList());
     }
     
