@@ -9,4 +9,5 @@ public class Player {
     public int hitsTaken;
     public int score;
     public boolean ironCurtainAvailable;
+    public int activeIronCurtainLifetime;
 }

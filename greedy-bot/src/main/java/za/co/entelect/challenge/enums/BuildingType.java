@@ -4,7 +4,9 @@ public enum BuildingType {
     DEFENSE("0"),
     ATTACK("1"),
     ENERGY("2"),
-    TESLA("3");
+    DECONSTRUCT("3"),
+    TESLA("4"),
+    CURTAIN("5");
 
     private final String commandCode;
 

@@ -32,7 +32,7 @@ public class Bot {
     // Generate command for the bot to execute
     public String run() {
         String command = "";
-        
+        boolean savingForCurtain = false;
         if(this.getPlayerHealth(PlayerType.A)==100)
         {
             int countEnergyAttack = this.getEnergyBuildingCount(PlayerType.A) + this.getAttackBuildingCount(PlayerType.A);
@@ -70,31 +70,46 @@ public class Bot {
         {
             // STAGE 3 : DEFENSE GREED
 
-            // // If iron curtai available ..
-            // if(this.)
-            // Default defense greed
-            int mostRow = this.getEnemyMostBuildingRow();
-            System.out.print("PISANG: ");
-            System.out.println(mostRow);
-            if(command=="" && this.isCellEmpty(6, mostRow))
+            // If iron curtain available ...
+            if(this.getIronCurtainAvailability(PlayerType.A))
             {
-                command = this.placeBuilding(BuildingType.DEFENSE, 6,mostRow);
+                // If a tesla in enemy's field finished constructed and can use it...
+                if(command=="" && this.getTeslaBuildingCount(PlayerType.B)!=0 && this.getPlayerEnergy(PlayerType.B)>=100)
+                {
+                    command = this.buildCommand(7, 7, BuildingType.CURTAIN);
+                }
+                
+                // If no tesla, and energy enough + low health
+                if(command=="" && this.getPlayerHealth(PlayerType.A)<=60)
+                {
+                    if(this.getPlayerEnergy(PlayerType.A)>=100)
+                    {
+                        command = this.buildCommand(7, 7, BuildingType.CURTAIN);
+                    }
+                    else savingForCurtain = true;
+                }
+                
             }
-            else if(command=="" && this.isCellEmpty(7, mostRow))
+
+            if(!savingForCurtain && command=="")
             {
-                command = this.placeBuilding(BuildingType.DEFENSE, 7,mostRow);
-            }
-            else
-            {
-                command = this.placeBuildingInRowFromBack(BuildingType.ATTACK,  mostRow);
+                // Default defense greed
+                int mostRow = this.getEnemyMostBuildingRow();
+                if(command=="" && this.isCellEmpty(6, mostRow))
+                {
+                    command = this.placeBuilding(BuildingType.DEFENSE, 6,mostRow);
+                }
+                else if(command=="" && this.isCellEmpty(7, mostRow))
+                {
+                    command = this.placeBuilding(BuildingType.DEFENSE, 7,mostRow);
+                }
+                else
+                {
+                    command = this.placeBuildingInRowFromBack(BuildingType.ATTACK,  mostRow);
+                }
             }
         }
         
-        for(int i=0;i<8;i++)
-        {
-            System.out.println(this.getEnemyBuildingCountInRow(i));
-        }
-
         return command;
     }
 
@@ -128,6 +143,23 @@ public class Bot {
         return this.gameState.getPlayers().stream()
         .filter(x -> x.playerType == playerType)
         .mapToInt(x -> x.energy)
+        .sum();
+    }
+
+    // Get player iron curtain availability of playerType
+    private boolean getIronCurtainAvailability(PlayerType playerType)
+    {
+        return this.gameState.getPlayers().stream()
+        .filter(x -> x.playerType == playerType)
+        .anyMatch(x -> x.ironCurtainAvailable);
+    }
+    
+    // Get player iron curtain availability of playerType
+    private int getIronCurtainLifetime(PlayerType playerType)
+    {
+        return this.gameState.getPlayers().stream()
+        .filter(x -> x.playerType == playerType)
+        .mapToInt(x -> x.activeIronCurtainLifetime)
         .sum();
     }
 
