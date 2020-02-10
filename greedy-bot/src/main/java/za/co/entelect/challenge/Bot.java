@@ -39,7 +39,7 @@ public class Bot {
 
             // STAGE 1 : ENERGY GREED
             
-            if(this.getEnergyIncome(PlayerType.A)<=20)
+            if(this.getEnergyIncome(PlayerType.A)<=30)
             {
                 // First round
                 if(command=="" && countEnergyAttack%4==0)
@@ -69,6 +69,10 @@ public class Bot {
         else
         {
             // STAGE 3 : DEFENSE GREED
+
+            // // If iron curtai available ..
+            // if(this.)
+            // Default defense greed
             int mostRow = this.getEnemyMostBuildingRow();
             System.out.print("PISANG: ");
             System.out.println(mostRow);
@@ -82,7 +86,7 @@ public class Bot {
             }
             else
             {
-                command = this.placeBuildingInRowFromFront(BuildingType.ATTACK,  mostRow, 5);
+                command = this.placeBuildingInRowFromBack(BuildingType.ATTACK,  mostRow);
             }
         }
         
