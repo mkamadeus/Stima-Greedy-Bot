@@ -33,20 +33,18 @@ public class Bot {
     public String run() {
         String command = "";
         boolean savingForCurtain = false;
-        boolean isCurtainActive = this.getIronCurtainLifetime(PlayerType.A)>=0;
-        if(this.getPlayerHealth(PlayerType.A)==100)
+        if(this.getPlayerHealth(PlayerType.A)>=90)
         {
             int countEnergyAttack = this.getEnergyBuildingCount(PlayerType.A) + this.getAttackBuildingCount(PlayerType.A);
 
             // STAGE 1 : ENERGY GREED
             
-            if(this.getEnergyIncome(PlayerType.A)<=30 && !isCurtainActive)
+            if(this.getEnergyIncome(PlayerType.A)<=30)
             {
                 // First round
                 if(command=="" && countEnergyAttack%4==0)
                 {
-                    if(this.getEnergyIncome(PlayerType.A)>=26) command =  this.placeBuildingInRowFromBack(BuildingType.ENERGY, this.getEnemyLeastBuildingRow(), 0);
-                    else command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
+                    command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
                 }
     
                 // Building count not multiple of 3
