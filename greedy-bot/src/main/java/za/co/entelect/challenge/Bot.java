@@ -33,18 +33,20 @@ public class Bot {
     public String run() {
         String command = "";
         boolean savingForCurtain = false;
+        boolean isCurtainActive = this.getIronCurtainLifetime(PlayerType.A)>=0;
         if(this.getPlayerHealth(PlayerType.A)==100)
         {
             int countEnergyAttack = this.getEnergyBuildingCount(PlayerType.A) + this.getAttackBuildingCount(PlayerType.A);
 
             // STAGE 1 : ENERGY GREED
             
-            if(this.getEnergyIncome(PlayerType.A)<=30)
+            if(this.getEnergyIncome(PlayerType.A)<=30 && !isCurtainActive)
             {
                 // First round
                 if(command=="" && countEnergyAttack%4==0)
                 {
-                    command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
+                    if(this.getEnergyIncome(PlayerType.A)>=26) command =  this.placeBuildingInRowFromBack(BuildingType.ENERGY, this.getEnemyLeastBuildingRow(), 0);
+                    else command = this.placeBuildingRandomlyFromBack(BuildingType.ENERGY);
                 }
     
                 // Building count not multiple of 3
@@ -62,8 +64,15 @@ public class Bot {
             else
             {
                 // STAGE 2 : ATTACK GREED
-                // cari yang paling kosong
-                command = this.placeBuildingInRowFromFront(BuildingType.ATTACK, this.getEnemyLeastBuildingRow(), 6);
+                int leastRow = this.getEnemyLeastBuildingRow();
+                if(this.currentRound()%2==0)
+                {
+                    command = this.placeBuildingInRowFromFront(BuildingType.ATTACK, leastRow, 7);
+                }
+                else
+                {
+                    command = this.placeBuildingInRowFromBack(BuildingType.ATTACK, leastRow, 0);
+                }
             }
         }
         else
@@ -95,6 +104,7 @@ public class Bot {
             {
                 // Default defense greed
                 int mostRow = this.getEnemyMostBuildingRow();
+
                 if(command=="" && this.isCellEmpty(6, mostRow))
                 {
                     command = this.placeBuilding(BuildingType.DEFENSE, 6,mostRow);
@@ -105,7 +115,7 @@ public class Bot {
                 }
                 else
                 {
-                    command = this.placeBuildingInRowFromBack(BuildingType.ATTACK,  mostRow);
+                    command = this.placeBuildingInRowFromBack(BuildingType.ATTACK,  mostRow, 0);
                 }
             }
         }
@@ -126,6 +136,12 @@ public class Bot {
     private int mapHeight()
     {
         return this.gameState.gameDetails.mapHeight;
+    }
+
+    // Get current round
+    private int currentRound()
+    {
+        return this.gameState.gameDetails.round;
     }
     
     // Get player health of playerType
@@ -240,7 +256,7 @@ public class Bot {
     // Get total count of enemy's building in row y
     private int getEnemyBuildingCountInRow(int row)
     {
-        return getEnemyAttackInRow(row)+getEnemyEnergyInRow(row)+getEnemyDefenseInRow(row);
+        return this.getEnemyAttackInRow(row)+this.getEnemyEnergyInRow(row)+this.getEnemyDefenseInRow(row);
     }
 
     // Return enemy's least row building, selects random least if many
@@ -250,15 +266,16 @@ public class Bot {
         int minimumCount = 999;
         for(int i=0;i<8;i++)
         {
-            if(minimumCount==this.getEnemyBuildingCountInRow(i))
+            int currentMinCount = this.getEnemyBuildingCountInRow(i);
+            if(minimumCount==currentMinCount)
             {
                 minimumRows.add(i);
             }
-            else if(minimumCount>this.getEnemyBuildingCountInRow(i))
+            else if(minimumCount>currentMinCount)
             {
                 minimumRows = new ArrayList<Integer>();
                 minimumRows.add(i);
-                minimumCount=i;
+                minimumCount=currentMinCount;
             }
         }
 
@@ -273,7 +290,8 @@ public class Bot {
         int maximumCount = -999;
         for(int i=0;i<8;i++)
         {
-            if(maximumCount==this.getEnemyBuildingCountInRow(i))
+            int currentMaxCount = this.getEnemyBuildingCountInRow(i);
+            if(maximumCount==currentMaxCount)
             {
                 maximumRows.add(i);
             }
@@ -281,7 +299,7 @@ public class Bot {
             {
                 maximumRows = new ArrayList<Integer>();
                 maximumRows.add(i);
-                maximumCount=i;
+                maximumCount=currentMaxCount;
             }
         }
 
@@ -324,7 +342,7 @@ public class Bot {
 
     // Placing building in a row from front line
     private String placeBuildingInRowFromFront(BuildingType buildingType, int y, int start) {
-        for (int i = (gameState.gameDetails.mapWidth / 2) - 1; i >= 0; i--) {
+        for (int i = this.mapWidth() - 1; i >= 0; i--) {
             if (i<=start && isCellEmpty(i, y)) {
                 return buildCommand(i, y, buildingType);
             }
@@ -333,9 +351,9 @@ public class Bot {
     }
 
     // Placing building in a row from back line
-    private String placeBuildingInRowFromBack(BuildingType buildingType, int y) {
-        for (int i = 0; i < gameState.gameDetails.mapWidth / 2; i++) {
-            if (isCellEmpty(i, y)) {
+    private String placeBuildingInRowFromBack(BuildingType buildingType, int y,int start) {
+        for (int i = 0; i < this.mapWidth(); i++) {
+            if (i>=start && isCellEmpty(i, y)) {
                 return buildCommand(i, y, buildingType);
             }
         }
