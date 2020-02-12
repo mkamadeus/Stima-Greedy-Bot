@@ -9,7 +9,9 @@
 
 ## Compiling the Bot
 
-TBA
+For Windows users, simply run the `compile.bat` file.
+
+For Linux users, simply run the `compile.sh` file.
 
 ## Running the Simulation
 
