@@ -1,9 +1,0 @@
-{
-  "round-state-output-location": "./visualizer/tower-defence-matches",
-  "game-config-file-location": "./game-config.properties",
-  "verbose-mode": true,
-  "max-runtime-ms": 2000,
-  "player-a": "./greedy-bot/",
-  "player-b": "./enemy-bot/",
-  "is-tournament-mode": false
-}
